@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [  'name',      'sku',  'barcode',   'cost_price',   'price',  'quantity',   'supplier_id',  'category_id',  'image',  ];
+    protected $casts = [
+        'cost_price' => 'decimal:2',  'price' => 'decimal:2',         'quantity' => 'integer', ];
+    // ✅ Accessor: stock = quantity
+    public function getStockAttribute(): int
+    {
+        return (int) $this->quantity; }
+ // ✅ Accessor: purchase_price = cost_price (للتوافق مع القديم)
+    public function getPurchasePriceAttribute(): float
+    {
+        return (float) ($this->cost_price ?? 0);  }
+
+    // ✅ Accessor: selling_price = price (للتوافق مع القديم)
+    public function getSellingPriceAttribute(): float
+    {
+        return (float) ($this->price ?? 0);
+    }
+    public function getStockLabelAttribute(): string
+    {
+        if ($this->quantity <= 0) return "🚫 {$this->name} (غير متوفر)";
+        if ($this->quantity <= 5) return "⚠️ {$this->name} (متبقي {$this->quantity})";
+        return "{$this->name} ({$this->quantity})";
+    }
+    protected static function booted(): void
+    {
+        static::creating(function ($product) {
+            if (empty($product->sku)) {
+                $product->sku = 'PROD' . strtoupper(substr(uniqid(), -5));
+            }
+            if (empty($product->barcode)) {
+                $product->barcode = $product->sku;
+            }
+        });
+
+        static::updated(function ($product) {
+            $oldQuantity = $product->getOriginal('quantity');
+            $newQuantity = $product->quantity;
+
+            if ($newQuantity < $oldQuantity && $newQuantity <= 5 && $product->supplier_id) {
+                $supplier = $product->supplier;
+
+                if ($supplier) {
+                    $quantityNeeded = 5;
+                    $amount = (float) (($product->cost_price ?? 0) * $quantityNeeded); // ✅ cost_price
+
+                    \App\Models\Debt::create([
+                        'person_name' => $supplier->name,
+                        'amount' => $amount,
+                        'type' => 'supplier',
+                        'is_paid' => 0,
+                        'due_date' => now()->addDays(7),
+                        'notes' => 'طلب تلقائي لنقص المخزون: ' . $product->name,
+                    ]);
+
+                    Notification::make()
+                        ->title('⚠️ نقص مخزون')
+                        ->body("المنتج: {$product->name} - المورد: {$supplier->name}")
+                        ->warning()
+                        ->send();
+                }
+            }
+        });
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+}

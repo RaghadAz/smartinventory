@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Filament\Admin\Resources\Sales\Pages;
+
+use App\Filament\Admin\Resources\Sales\SaleResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+
+class ListSales extends ListRecords
+{
+    protected static string $resource = SaleResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            // هذا السطر هو المسؤول عن إظهار الزر الأزرق فوق الجدول
+            Actions\CreateAction::make()
+                ->label('إضافة فاتورة مبيع'),
+        ];
+    }
+}
