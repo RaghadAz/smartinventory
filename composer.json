@@ -19,10 +19,10 @@
         "picqer/php-barcode-generator": "^3.2",
         "shuchkin/simplexlsxgen": "^1.5",
         "simplesoftwareio/simple-qrcode": "^4.2",
-        "spatie/laravel-permission": "^6.25"
+        "spatie/laravel-permission": "^6.25",
+        "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^4.2",
         "fakerphp/faker": "^1.23",
         "kitloong/laravel-migrations-generator": "^7.4",
         "laravel/pail": "^1.2.2",

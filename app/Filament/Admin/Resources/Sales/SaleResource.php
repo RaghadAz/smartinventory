@@ -38,6 +38,7 @@ use Log;
     {
         return (string) auth()->user()?->getAttribute('role') === 'admin';
     }
+    
 
     public static function form(Schema $schema): Schema
     {
@@ -311,7 +312,11 @@ use Log;
     {
         return self::processSaleData($data);
     }
-
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // تحميل العلاقات مسبقاً دفعة واحدة لتسريع عرض الجدول كلياً
+        return parent::getEloquentQuery()->with(['saleItems.product']);
+    }
     // 🔹 هون تحط الكود
     protected static function processSaleData(array $data): array
     {
@@ -406,31 +411,32 @@ use Log;
                     ->label('👤 الزبون')
                     ->formatStateUsing(fn ($state) => $state ?? '💵 كاش'),
                 
-                    TextColumn::make('products_list')  // ← غيّر الاسم
-                    ->label('📦 المنتجات')
-                    ->state(function ($record) {
-                        $grouped = [];
-                        
-                        foreach ($record->saleItems as $item) {
-                            $id = $item->product_id;
-                            $name = $item->product?->name ?? 'منتج محذوف';
-                            $qty = (int) $item->quantity;
-                            
-                            if (!isset($grouped[$id])) {
-                                $grouped[$id] = ['name' => $name, 'qty' => 0];
-                            }
-                            $grouped[$id]['qty'] += $qty;
-                        }
-                        
-                        $lines = [];
-                        foreach ($grouped as $product) {
-                            $lines[] = "• {$product['name']} ({$product['qty']})";
-                        }
-                        
-                        return implode("<br>", $lines);
-                    })
-                    ->html()
-                    ->wrap(),
+                    TextColumn::make('products_list')
+    ->label('📦 المنتجات')
+    ->state(function ($record) {
+        $grouped = [];
+        
+        // بفضل الـ Eager loading، هذا الـ Loop سيعمل بالذاكرة فوراً دون أي استعلام إضافي
+        foreach ($record->saleItems as $item) {
+            $id = $item->product_id;
+            $name = $item->product?->name ?? 'منتج محذوف';
+            $qty = (int) $item->quantity;
+            
+            if (!isset($grouped[$id])) {
+                $grouped[$id] = ['name' => $name, 'qty' => 0];
+            }
+            $grouped[$id]['qty'] += $qty;
+        }
+        
+        $lines = [];
+        foreach ($grouped as $product) {
+            $lines[] = "• {$product['name']} ({$product['qty']})";
+        }
+        
+        return implode("<br>", $lines);
+    })
+    ->html()
+    ->wrap(),
                 
                 TextColumn::make('total_price')->label('💰 الإجمالي')->money('SYP')->sortable(),
                 TextColumn::make('paid_amount')->label('💵 المدفوع')->money('SYP'),

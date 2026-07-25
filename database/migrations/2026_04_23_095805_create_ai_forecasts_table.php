@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('ai_forecasts', function (Blueprint $table) {
             $table->id();
-            $table->string('message');
-            $table->boolean('is_read')->default(false);
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('product_id')->constrained('products');
+            $table->integer('expected_demand'); // الكمية المتوقعة
+            $table->date('forecast_date'); // التاريخ المستهدف للتوقع
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('ai_forecasts');
     }
 };

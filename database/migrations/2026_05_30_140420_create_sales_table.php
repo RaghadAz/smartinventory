@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            
+
             // 🔧 الحقول المطلوبة
             $table->string('payment_type')->default('cash'); // cash | debt
             $table->string('customer_name')->nullable();
@@ -23,11 +23,10 @@ return new class extends Migration
             $table->decimal('paid_amount', 12, 2)->default(0);
             $table->decimal('paid_amount_display', 12, 2)->default(0);
             $table->decimal('remaining_price', 12, 2)->default(0);
-            
+
             $table->string('status')->default('completed');
             $table->timestamps();
         });
-        
     }
 
     /**

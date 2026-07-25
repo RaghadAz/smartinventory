@@ -3,55 +3,18 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
-class RolesAndPermissionsSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
-        // إنشاء الصلاحيات
-        $permissions = [
-            // المبيعات
-            'view sales',
-            'create sales',
-            'edit sales',
-            'delete sales',
-            'print sales',
-            
-            // المنتجات
-            'view products',
-            'create products',
-            'edit products',
-            'delete products',
-            
-            // التقارير
-            'view reports',
-            'view profits',
-            
-            // الإعدادات
-            'manage users',
-            'manage settings',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
-        }
-
-        // إنشاء الأدوار
-        $admin = Role::firstOrCreate(['name' => 'admin']);
-        $cashier = Role::firstOrCreate(['name' => 'cashier']);
-
-        // Admin: كل الصلاحيات
-        $admin->syncPermissions(Permission::all());
-
-        // Cashier: صلاحيات محدودة
-        $cashier->syncPermissions([
-            'view sales',
-            'create sales',
-            'edit sales',
-            'print sales',
-            'view products',
+        // هنا نقوم باستدعاء ملفات الـ Seeders الأخرى بالترتيب الصحيح لكي تعمل تلقائياً
+        $this->call([
+            RolePermissionSeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
     }
 }

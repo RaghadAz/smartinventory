@@ -12,10 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('debts', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
             $table->string('person_name')->nullable();
             $table->decimal('amount', 12)->nullable();
-            $table->unsignedBigInteger('sale_id')->nullable();
+            $table->foreignId('sale_id')->nullable();
             $table->boolean('is_paid')->nullable()->default(false);
             $table->timestamps();
         });
